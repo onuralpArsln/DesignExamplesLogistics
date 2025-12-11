@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flux Logistics | Delivering the Future</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            outline: none;
+        }
+
+        .section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10%;
+            position: relative;
+            pointer-events: none;
+            /* Let clicks pass through to canvas mostly */
+        }
+
+        .content-box {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-left: 4px solid #00f0ff;
+            max-width: 500px;
+            pointer-events: auto;
+            /* Re-enable clicks for text */
+            transform: translateY(50px);
+            opacity: 0;
+            border-radius: 0 1rem 1rem 0;
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.1);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
+        .hidden-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #444;
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+
+        .accent-text {
+            color: #00f0ff;
+        }
+
+        .accent-orange {
+            color: #ff8800;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 3D Background -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay -->
+    <nav class="fixed top-0 w-full p-6 flex justify-between items-center z-50 pointer-events-none mix-blend-difference">
+        <div
+            class="text-2xl font-bold tracking-tighter uppercase pointer-events-auto cursor-pointer hover:text-cyan-400 transition">
+            FLUX<span class="text-cyan-400">.LOGISTICS</span>
+        </div>
+        <div class="pointer-events-auto space-x-6 text-sm font-semibold hidden md:block">
+            <a href="#" class="hover:text-cyan-400 transition">Track</a>
+            <a href="#" class="hover:text-cyan-400 transition">Services</a>
+            <a href="#" class="hover:text-cyan-400 transition">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Scroll Sections -->
+    <main>
+        <section class="section" id="s1">
+            <div class="content-box">
+                <h1 class="text-5xl font-bold mb-4 leading-tight">Moving the World, <br><span
+                        class="accent-text">Faster.</span></h1>
+                <p class="text-gray-300 text-lg mb-6">Experience the next generation of supply chain management.
+                    AI-driven routing, zero-emission fleets, and absolute transparency.</p>
+                <button
+                    class="bg-cyan-500 text-black px-6 py-3 font-bold rounded hover:bg-cyan-400 transition transform hover:scale-105">Get
+                    a Quote</button>
+            </div>
+            <div class="scroll-indicator text-cyan-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </div>
+        </section>
+
+        <section class="section justify-end items-end text-right" id="s2">
+            <div class="content-box"
+                style="border-left: none; border-right: 4px solid #ff8800; border-radius: 1rem 0 0 1rem;">
+                <h2 class="text-4xl font-bold mb-4">Global <span class="accent-orange">Coverage</span></h2>
+                <p class="text-gray-300 mb-4">From hyper-local deliveries to intercontinental freight. Our algorithmic
+                    network adapts in real-time to avoid delays.</p>
+                <div class="flex justify-end gap-4 text-sm text-gray-400">
+                    <div>Running: <span class="text-white">99.9%</span></div>
+                    <div>Active Fleets: <span class="text-white">14,203</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section items-center text-center" id="s3">
+            <div class="content-box"
+                style="border: none; border-top: 4px solid #00f0ff; border-radius: 1rem; max-width: 600px;">
+                <h2 class="text-4xl font-bold mb-4">Real-Time <span class="accent-text">Precision</span></h2>
+                <p class="text-gray-300">Don't just track your package. Watch it move. Our 3D visualization tech gives
+                    you granular control over your inventory.</p>
+            </div>
+        </section>
+
+        <section class="section" id="s4">
+            <div class="content-box">
+                <h2 class="text-4xl font-bold mb-4">Ready to <span class="accent-orange">Ship?</span></h2>
+                <p class="text-gray-300 mb-6">Join 500+ enterprise partners revolutionizing their logistics.</p>
+                <button
+                    class="bg-white text-black px-8 py-4 font-bold rounded hover:bg-gray-200 transition w-full">Start
+                    Now</button>
+            </div>
+        </section>
+    </main>
+
+    <div class="hidden-hint">Press 'L' for Lights • Click Truck to Jump</div>
+
+    <script>
+        // --- 1. SETUP THREE.JS SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.0025);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // --- 2. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0x404040, 2);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+
+        const pointLight = new THREE.PointLight(0x00f0ff, 2, 50);
+        pointLight.position.set(0, 5, 0);
+        scene.add(pointLight);
+
+        // --- 3. OBJECTS ---
+
+        // The Road (Infinite Grid illusion)
+        const gridHelper = new THREE.GridHelper(200, 100, 0x00f0ff, 0x222222);
+        gridHelper.position.y = -2;
+        scene.add(gridHelper);
+
+        const roadGeo = new THREE.PlaneGeometry(20, 400);
+        const roadMat = new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            roughness: 0.1,
+            metalness: 0.5
+        });
+        const road = new THREE.Mesh(roadGeo, roadMat);
+        road.rotation.x = -Math.PI / 2;
+        road.position.y = -2.01;
+        road.receiveShadow = true;
+        scene.add(road);
+
+        // Moving Stars/Particles
+        const starsGeo = new THREE.BufferGeometry();
+        const starsCount = 1000;
+        const posArray = new Float32Array(starsCount * 3);
+        for (let i = 0; i < starsCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 300; // Spread wide
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const starsMat = new THREE.PointsMaterial({
+            size: 0.5,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.8
+        });
+        const starField = new THREE.Points(starsGeo, starsMat);
+        scene.add(starField);
+
+        // Procedural Truck Group
+        const truckGroup = new THREE.Group();
+
+        // Chassis
+        const chassisGeo = new THREE.BoxGeometry(2.5, 1, 6);
+        const chassisMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const chassis = new THREE.Mesh(chassisGeo, chassisMat);
+        chassis.castShadow = true;
+        truckGroup.add(chassis);
+
+        // Cabin
+        const cabinGeo = new THREE.BoxGeometry(2.5, 2, 2);
+        const cabinMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff });
+        const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+        cabin.position.set(0, 1.5, 2);
+        cabin.castShadow = true;
+        truckGroup.add(cabin);
+
+        // Container
+        const containerGeo = new THREE.BoxGeometry(2.4, 2.5, 3.8);
+        const containerMat = new THREE.MeshStandardMaterial({ color: 0xdddddd }); // White container
+        const truckContainer = new THREE.Mesh(containerGeo, containerMat);
+        truckContainer.position.set(0, 1.75, -1);
+        truckContainer.castShadow = true;
+        truckGroup.add(truckContainer);
+
+        // Wheels
+        const wheelGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.6, 32);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const wheels = [];
+        const wheelPositions = [
+            [-1.4, -0.5, 2], [1.4, -0.5, 2], // Front
+            [-1.4, -0.5, -2], [1.4, -0.5, -2] // Back
+        ];
+        wheelPositions.forEach(pos => {
+            const w = new THREE.Mesh(wheelGeo, wheelMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...pos);
+            truckGroup.add(w);
+            wheels.push(w);
+        });
+
+        // Headlights
+        const headlightGeo = new THREE.BoxGeometry(0.5, 0.5, 0.1);
+        const headlightMat = new THREE.MeshBasicMaterial({ color: 0xffffaa });
+        const hlLeft = new THREE.Mesh(headlightGeo, headlightMat);
+        hlLeft.position.set(-0.8, 1, 3.01);
+        const hlRight = new THREE.Mesh(headlightGeo, headlightMat);
+        hlRight.position.set(0.8, 1, 3.01);
+        cabin.add(hlLeft);
+        cabin.add(hlRight);
+
+        // Spotlights for headlights effect
+        const spotL = new THREE.SpotLight(0xffffaa, 5, 40, 0.5, 0.5, 1);
+        spotL.position.set(-0.8, 1.5, 4);
+        spotL.target.position.set(-0.8, 0, 10);
+        truckGroup.add(spotL);
+        truckGroup.add(spotL.target);
+
+        const spotR = new THREE.SpotLight(0xffffaa, 5, 40, 0.5, 0.5, 1);
+        spotR.position.set(0.8, 1.5, 4);
+        spotR.target.position.set(0.8, 0, 10);
+        truckGroup.add(spotR);
+        truckGroup.add(spotR.target);
+
+        scene.add(truckGroup);
+
+        // Floating Packages (Interactive)
+        const cubes = [];
+        const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+
+        for (let i = 0; i < 20; i++) {
+            const mat = new THREE.MeshStandardMaterial({
+                color: Math.random() > 0.5 ? 0xff8800 : 0x00f0ff,
+                wireframe: true
+            });
+            const mesh = new THREE.Mesh(cubeGeo, mat);
+
+            // Random position along the road z-axis
+            mesh.position.set(
+                (Math.random() - 0.5) * 30, // x
+                Math.random() * 5 + 1, // y
+                (Math.random() - 0.5) * 100 // z
+            );
+
+            mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+            mesh.userData = {
+                speed: Math.random() * 0.02 + 0.01,
+                rotSpeed: { x: Math.random() * 0.02, y: Math.random() * 0.02 }
+            };
+
+            scene.add(mesh);
+            cubes.push(mesh);
+        }
+
+        // --- 4. ANIMATION LOGIC & GSAP SCROLL ---
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Initial Camera Position
+        camera.position.set(10, 5, 10);
+        camera.lookAt(truckGroup.position);
+
+        // Timeline for Scroll Interactions
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1 // Smooth scrubbing
+            }
+        });
+
+        // 1. Move Truck forward relative to grid (Illusion: Move grid back, or move truck forward)
+        // We will move truck forward and camera matches it, but to keep numbers small, we loop background.
+        // Actually, let's just move the truck forward and have camera chase.
+
+        // Section 1 -> 2: Camera moves to Chase View
+        tl.to(camera.position, {
+            x: 0,
+            y: 3,
+            z: -10, // Behind truck
+            duration: 2,
+            ease: "power2.inOut",
+            onUpdate: () => camera.lookAt(truckGroup.position)
+        }, "start");
+
+        tl.to(truckGroup.position, {
+            z: 50, // Truck drives forward
+            duration: 10, // Happens over whole scroll
+            ease: "none"
+        }, "start");
+
+        // Section 2 -> 3: Camera moves to Top Down
+        tl.to(camera.position, {
+            x: 0,
+            y: 20,
+            z: 50, // Catch up to truck
+            duration: 3,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                camera.lookAt(truckGroup.position);
+            }
+        }, ">-1"); // Overlap slightly
+
+        // Section 3 -> 4: Side cinematic pan
+        tl.to(camera.position, {
+            x: 15,
+            y: 2,
+            z: 60, // Ahead of truck
+            duration: 3,
+            ease: "power1.inOut",
+            onUpdate: () => camera.lookAt(truckGroup.position)
+        }, ">");
+
+
+        // --- 5. INTERACTIVITY & EASTER EGGS ---
+
+        // Mouse movement parallax
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+
+            // Raycaster for hovering cubes
+            checkIntersection(e.clientX, e.clientY);
+        });
+
+        // Raycaster
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function checkIntersection(cx, cy) {
+            mouse.x = (cx / window.innerWidth) * 2 - 1;
+            mouse.y = -(cy / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(cubes);
+
+            if (intersects.length > 0) {
+                // Easter Egg: Hover makes cube spin fast
+                gsap.to(intersects[0].object.rotation, {
+                    x: "+=2",
+                    y: "+=2",
+                    duration: 0.5,
+                    ease: "power1.out"
+                });
+                document.body.style.cursor = 'crosshair';
+            } else {
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        // Easter Egg: Click to spawn package
+        window.addEventListener('click', (e) => {
+            // Check if clicking truck
+            raycaster.setFromCamera(mouse, camera);
+            const truckIntersects = raycaster.intersectObjects(truckGroup.children);
+
+            if (truckIntersects.length > 0) {
+                // Truck Jump
+                gsap.to(truckGroup.position, {
+                    y: 2,
+                    duration: 0.3,
+                    yoyo: true,
+                    repeat: 1
+                });
+            } else {
+                // Spawn package
+                const mat = new THREE.MeshStandardMaterial({ color: 0xff00ff, wireframe: true });
+                const mesh = new THREE.Mesh(cubeGeo, mat);
+                // Position where clicked in world space (roughly)
+                const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+                vector.unproject(camera);
+                const dir = vector.sub(camera.position).normalize();
+                const distance = -camera.position.y / dir.y; // Intersect with floor plane (y=0 approx)
+                const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+                mesh.position.copy(pos);
+                mesh.position.y = 5; // Start high
+                scene.add(mesh);
+                cubes.push(mesh);
+
+                gsap.to(mesh.position, {
+                    y: 1,
+                    duration: 1,
+                    ease: "bounce.out"
+                });
+            }
+        });
+
+        // Easter Egg: 'L' Key for Lights
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'l') {
+                const isOn = spotL.intensity > 0;
+                spotL.intensity = isOn ? 0 : 5;
+                spotR.intensity = isOn ? 0 : 5;
+                hlLeft.material.color.setHex(isOn ? 0x111111 : 0xffffaa);
+                hlRight.material.color.setHex(isOn ? 0x111111 : 0xffffaa);
+            }
+        });
+
+        // Animate DOM Elements
+        gsap.utils.toArray('.content-box').forEach(box => {
+            gsap.to(box, {
+                opacity: 1,
+                y: 0,
+                duration: 1,
+                scrollTrigger: {
+                    trigger: box,
+                    start: "top 80%",
+                }
+            });
+        });
+
+        // --- 6. RENDER LOOP ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smooth mouse parallax
+            targetX = mouseX * 2;
+            targetY = mouseY * 2;
+
+            // Only apply parallax if not heavily controlled by scroll (subtle effect)
+            truckGroup.rotation.y += 0.05 * (targetX - truckGroup.rotation.y);
+            truckGroup.rotation.z += 0.05 * (targetY - truckGroup.rotation.z);
+
+            // Animate Wheels
+            wheels.forEach(w => {
+                w.rotation.x += 0.1;
+            });
+
+            // Animate Stars (infinite scroll illusion)
+            // Move stars towards camera based on truck speed? 
+            // Simplified: Just rotate starfield slowly
+            starField.rotation.y += 0.0005;
+
+            // Animate Cubes
+            cubes.forEach(cube => {
+                cube.rotation.x += cube.userData.rotSpeed.x;
+                cube.rotation.y += cube.userData.rotSpeed.y;
+                // Float up and down
+                cube.position.y += Math.sin(Date.now() * 0.001 + cube.position.x) * 0.01;
+            });
+
+            // Infinite Road Effect (Texture offset)
+            // Since we are using a plain geometry, we can just move the grid helper
+            // Or simpler: Move truck forward, but reset road/stars if needed. 
+            // In this specific scene, we let the truck drive 'forward' in Z space.
+            // But we need the grid to follow the camera x/z to look infinite?
+            // Simple trick: Move grid to match camera quantized position
+            gridHelper.position.z = camera.position.z;
+            gridHelper.position.x = camera.position.x;
+
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+
+</html>

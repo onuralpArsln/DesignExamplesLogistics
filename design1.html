@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftFlow Logistics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, #1a1f4e 0%, #0a0e27 100%);
+        }
+
+        #hero-canvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: #a5b4fc;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out 0.4s backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cta-button:hover::before {
+            opacity: 1;
+        }
+
+        .cta-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            padding: 100px 20px;
+            position: relative;
+        }
+
+        .stats-section {
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1f4e 50%, #0a0e27 100%);
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        .stat-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            color: #a5b4fc;
+        }
+
+        .journey-section {
+            background: #0a0e27;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #journey-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .journey-title {
+            text-align: center;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 4rem;
+            background: linear-gradient(135deg, #fff 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+        }
+
+        .journey-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .journey-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 3px;
+            height: 0%;
+            background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+            transform: translateX(-50%);
+            transition: height 0.5s ease;
+        }
+
+        .journey-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s ease;
+        }
+
+        .journey-step:nth-child(even) {
+            flex-direction: row-reverse;
+            transform: translateX(50px);
+        }
+
+        .journey-step.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .journey-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+            position: relative;
+            z-index: 2;
+        }
+
+        .journey-content {
+            flex: 1;
+            padding: 2rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            margin: 0 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .journey-content:hover {
+            background: rgba(99, 102, 241, 0.15);
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.3);
+        }
+
+        .journey-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .journey-content p {
+            color: #a5b4fc;
+            line-height: 1.6;
+        }
+
+        .features-section {
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1f4e 100%);
+            position: relative;
+        }
+
+        #features-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card {
+            padding: 2.5rem;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .feature-card:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .feature-card p {
+            color: #a5b4fc;
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #1a1f4e 0%, #6366f1 100%);
+            text-align: center;
+            padding: 120px 20px;
+        }
+
+        .cta-section h2 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-section p {
+            font-size: 1.3rem;
+            margin-bottom: 2.5rem;
+            color: #e0e7ff;
+        }
+
+        @media (max-width: 768px) {
+            .journey-step {
+                flex-direction: column !important;
+                text-align: center;
+            }
+
+            .journey-line {
+                display: none;
+            }
+
+            .journey-content {
+                margin: 1rem 0 0 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <canvas id="hero-canvas"></canvas>
+        <div class="hero-content">
+            <h1>Logistics That Moves at the Speed of Tomorrow</h1>
+            <p>Global shipping solutions powered by cutting-edge technology</p>
+            <a href="#" class="cta-button"><span>Start Shipping →</span></a>
+        </div>
+    </section>
+
+    <section class="section stats-section">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" data-target="150">0</div>
+                <div class="stat-label">Countries Reached</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="2.5">0</div>
+                <div class="stat-label">Million Deliveries/Year</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="99.8">0</div>
+                <div class="stat-label">% On-Time Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="24">0</div>
+                <div class="stat-label">Hour Tracking</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section journey-section">
+        <canvas id="journey-canvas"></canvas>
+        <h2 class="journey-title">Your Package's Journey</h2>
+        <div class="journey-container">
+            <div class="journey-line"></div>
+
+            <div class="journey-step">
+                <div class="journey-icon">📦</div>
+                <div class="journey-content">
+                    <h3>Pickup & Processing</h3>
+                    <p>We collect your package and process it through our advanced sorting systems with AI-powered
+                        routing.</p>
+                </div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-icon">✈️</div>
+                <div class="journey-content">
+                    <h3>Global Transit</h3>
+                    <p>Your shipment travels via our optimized network of air, sea, and ground transportation.</p>
+                </div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-icon">🛰️</div>
+                <div class="journey-content">
+                    <h3>Real-Time Tracking</h3>
+                    <p>Monitor your package's exact location with GPS precision and receive instant updates.</p>
+                </div>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-icon">🚚</div>
+                <div class="journey-content">
+                    <h3>Final Delivery</h3>
+                    <p>Local couriers complete the last mile with care, ensuring safe delivery to your doorstep.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section features-section">
+        <canvas id="features-canvas"></canvas>
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-icon">⚡</span>
+                <h3>Lightning Fast</h3>
+                <p>Express delivery options with same-day and next-day services available worldwide.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔒</span>
+                <h3>Secure Handling</h3>
+                <p>Advanced security protocols and insurance options for complete peace of mind.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🌍</span>
+                <h3>Global Network</h3>
+                <p>Access to 150+ countries with local expertise in every major market.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">💰</span>
+                <h3>Transparent Pricing</h3>
+                <p>No hidden fees. Get instant quotes and competitive rates for all shipments.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📱</span>
+                <h3>Smart Platform</h3>
+                <p>Manage all shipments from our intuitive app with AI-powered predictions.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">♻️</span>
+                <h3>Eco-Friendly</h3>
+                <p>Carbon-neutral shipping options and sustainable packaging solutions.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <h2>Ready to Ship Smarter?</h2>
+        <p>Join thousands of businesses that trust us with their logistics</p>
+        <a href="#" class="cta-button"><span>Get Started Now →</span></a>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Hero 3D Scene - Rotating Packages
+        const heroCanvas = document.getElementById('hero-canvas');
+        const heroScene = new THREE.Scene();
+        const heroCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const heroRenderer = new THREE.WebGLRenderer({ canvas: heroCanvas, alpha: true, antialias: true });
+        heroRenderer.setSize(window.innerWidth, window.innerHeight);
+        heroCamera.position.z = 15;
+
+        // Create 3D logistics vehicles
+        const vehicles = [];
+
+        // Function to create a cargo ship
+        function createShip() {
+            const ship = new THREE.Group();
+
+            // Hull
+            const hullGeo = new THREE.BoxGeometry(4, 1, 1.5);
+            const hullMat = new THREE.MeshPhongMaterial({ color: 0x6366f1, shininess: 80 });
+            const hull = new THREE.Mesh(hullGeo, hullMat);
+            ship.add(hull);
+
+            // Bridge
+            const bridgeGeo = new THREE.BoxGeometry(1, 0.8, 1);
+            const bridge = new THREE.Mesh(bridgeGeo, hullMat);
+            bridge.position.set(-1.2, 0.7, 0);
+            ship.add(bridge);
+
+            // Containers
+            for (let i = 0; i < 3; i++) {
+                const containerGeo = new THREE.BoxGeometry(0.8, 0.6, 1.2);
+                const containerMat = new THREE.MeshPhongMaterial({
+                    color: [0x8b5cf6, 0x6366f1, 0xa78bfa][i % 3],
+                    shininess: 60
+                });
+                const container = new THREE.Mesh(containerGeo, containerMat);
+                container.position.set(0.5 + i * 0.9, 0.6, 0);
+                ship.add(container);
+            }
+
+            return ship;
+        }
+
+        // Function to create a plane
+        function createPlane() {
+            const plane = new THREE.Group();
+
+            // Fuselage
+            const fuselageGeo = new THREE.BoxGeometry(3, 0.6, 0.6);
+            const fuselageMat = new THREE.MeshPhongMaterial({ color: 0x8b5cf6, shininess: 100 });
+            const fuselage = new THREE.Mesh(fuselageGeo, fuselageMat);
+            plane.add(fuselage);
+
+            // Main Wings (left and right)
+            const wingGeo = new THREE.BoxGeometry(0.2, 3, 0.8);
+            const wingMat = new THREE.MeshPhongMaterial({ color: 0x6366f1, shininess: 100 });
+            const leftWing = new THREE.Mesh(wingGeo, wingMat);
+            leftWing.position.set(0, 1.5, 0);
+            plane.add(leftWing);
+
+            const rightWing = new THREE.Mesh(wingGeo, wingMat);
+            rightWing.position.set(0, -1.5, 0);
+            plane.add(rightWing);
+
+            // Tail wings (horizontal stabilizer)
+            const tailWingGeo = new THREE.BoxGeometry(0.15, 1.2, 0.4);
+            const tailWingLeft = new THREE.Mesh(tailWingGeo, wingMat);
+            tailWingLeft.position.set(-1.3, 0.6, 0);
+            plane.add(tailWingLeft);
+
+            const tailWingRight = new THREE.Mesh(tailWingGeo, wingMat);
+            tailWingRight.position.set(-1.3, -0.6, 0);
+            plane.add(tailWingRight);
+
+            // Vertical stabilizer (tail fin)
+            const tailFinGeo = new THREE.BoxGeometry(0.15, 0.4, 0.8);
+            const tailFin = new THREE.Mesh(tailFinGeo, wingMat);
+            tailFin.position.set(-1.3, 0, 0.5);
+            plane.add(tailFin);
+
+            return plane;
+        }
+
+        // Function to create a truck
+        function createTruck() {
+            const truck = new THREE.Group();
+
+            // Cabin
+            const cabinGeo = new THREE.BoxGeometry(0.8, 0.7, 0.8);
+            const cabinMat = new THREE.MeshPhongMaterial({ color: 0x6366f1, shininess: 80 });
+            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+            cabin.position.set(-0.8, 0, 0);
+            truck.add(cabin);
+
+            // Container
+            const containerGeo = new THREE.BoxGeometry(2, 1, 0.9);
+            const containerMat = new THREE.MeshPhongMaterial({ color: 0x8b5cf6, shininess: 60 });
+            const container = new THREE.Mesh(containerGeo, containerMat);
+            container.position.set(0.5, 0.1, 0);
+            truck.add(container);
+
+            // Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16);
+            const wheelMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
+
+            const wheelPositions = [
+                [-1, -0.5, 0.5], [-1, -0.5, -0.5],
+                [0.3, -0.5, 0.5], [0.3, -0.5, -0.5],
+                [1, -0.5, 0.5], [1, -0.5, -0.5]
+            ];
+
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(...pos);
+                truck.add(wheel);
+            });
+
+            return truck;
+        }
+
+        // Create mix of vehicles
+        const vehicleTypes = [createShip, createPlane, createTruck];
+
+        for (let i = 0; i < 12; i++) {
+            const createVehicle = vehicleTypes[i % 3];
+            const vehicle = createVehicle();
+
+            vehicle.position.x = (Math.random() - 0.5) * 30;
+            vehicle.position.y = (Math.random() - 0.5) * 20;
+            vehicle.position.z = (Math.random() - 0.5) * 20;
+
+            vehicle.rotation.x = Math.random() * 0.5;
+            vehicle.rotation.y = Math.random() * Math.PI * 2;
+            vehicle.rotation.z = Math.random() * 0.3;
+
+            const scale = 0.6 + Math.random() * 0.4;
+            vehicle.scale.set(scale, scale, scale);
+
+            heroScene.add(vehicle);
+            vehicles.push({
+                mesh: vehicle,
+                speedX: (Math.random() - 0.5) * 0.015,
+                speedY: (Math.random() - 0.5) * 0.01,
+                rotSpeed: (Math.random() - 0.5) * 0.015
+            });
+        }
+
+        // Lighting
+        const heroLight1 = new THREE.DirectionalLight(0x6366f1, 1);
+        heroLight1.position.set(5, 5, 5);
+        heroScene.add(heroLight1);
+
+        const heroLight2 = new THREE.DirectionalLight(0x8b5cf6, 0.5);
+        heroLight2.position.set(-5, -5, 5);
+        heroScene.add(heroLight2);
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        heroScene.add(ambientLight);
+
+        // Journey Section - 3D Path
+        const journeyCanvas = document.getElementById('journey-canvas');
+        const journeyScene = new THREE.Scene();
+        const journeyCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const journeyRenderer = new THREE.WebGLRenderer({ canvas: journeyCanvas, alpha: true, antialias: true });
+        journeyRenderer.setSize(window.innerWidth, journeyCanvas.parentElement.offsetHeight);
+        journeyCamera.position.z = 10;
+
+        // Create a flowing path
+        const pathPoints = [];
+        for (let i = 0; i < 100; i++) {
+            const t = i / 100;
+            pathPoints.push(new THREE.Vector3(
+                Math.sin(t * Math.PI * 4) * 5,
+                t * 20 - 10,
+                Math.cos(t * Math.PI * 2) * 2
+            ));
+        }
+
+        const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+        const pathMaterial = new THREE.LineBasicMaterial({
+            color: 0x6366f1,
+            linewidth: 3,
+            transparent: true,
+            opacity: 0.6
+        });
+        const path = new THREE.Line(pathGeometry, pathMaterial);
+        journeyScene.add(path);
+
+        // Add moving sphere along path
+        const sphereGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const sphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0x8b5cf6,
+            emissive: 0x8b5cf6,
+            emissiveIntensity: 0.5
+        });
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        journeyScene.add(sphere);
+
+        const journeyLight = new THREE.PointLight(0x6366f1, 2, 50);
+        journeyScene.add(journeyLight);
+
+        // Features Section - Floating Vehicles
+        const featuresCanvas = document.getElementById('features-canvas');
+        const featuresScene = new THREE.Scene();
+        const featuresCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const featuresRenderer = new THREE.WebGLRenderer({ canvas: featuresCanvas, alpha: true, antialias: true });
+        featuresRenderer.setSize(window.innerWidth, featuresCanvas.parentElement.offsetHeight);
+        featuresCamera.position.z = 15;
+
+        const featureVehicles = [];
+        const featureVehicleTypes = [createShip, createPlane, createTruck];
+
+        for (let i = 0; i < 15; i++) {
+            const createVehicle = featureVehicleTypes[i % 3];
+            const vehicle = createVehicle();
+
+            vehicle.position.x = (Math.random() - 0.5) * 30;
+            vehicle.position.y = (Math.random() - 0.5) * 25 - 5;
+            vehicle.position.z = (Math.random() - 0.5) * 10;
+
+            vehicle.rotation.x = Math.random() * 0.5;
+            vehicle.rotation.y = Math.random() * Math.PI * 2;
+            vehicle.rotation.z = Math.random() * 0.3;
+
+            const scale = 0.4 + Math.random() * 0.3;
+            vehicle.scale.set(scale, scale, scale);
+
+            // Make them semi-transparent
+            vehicle.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = child.material.clone();
+                    child.material.transparent = true;
+                    child.material.opacity = 0.3 + Math.random() * 0.2;
+                }
+            });
+
+            featuresScene.add(vehicle);
+            featureVehicles.push({
+                mesh: vehicle,
+                speed: Math.random() * 0.02 + 0.01,
+                rotSpeed: (Math.random() - 0.5) * 0.01
+            });
+        }
+
+        const featuresLight = new THREE.PointLight(0x8b5cf6, 1, 50);
+        featuresLight.position.set(0, 0, 10);
+        featuresScene.add(featuresLight);
+
+        const featuresAmbient = new THREE.AmbientLight(0x6366f1, 0.3);
+        featuresScene.add(featuresAmbient);
+
+        // Animation variables
+        let scrollY = 0;
+        let pathProgress = 0;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Hero animation - vehicles
+            vehicles.forEach(vehicle => {
+                vehicle.mesh.rotation.y += vehicle.rotSpeed;
+                vehicle.mesh.position.x += vehicle.speedX;
+                vehicle.mesh.position.y += vehicle.speedY;
+
+                if (Math.abs(vehicle.mesh.position.x) > 15) vehicle.speedX *= -1;
+                if (Math.abs(vehicle.mesh.position.y) > 10) vehicle.speedY *= -1;
+            });
+
+            heroRenderer.render(heroScene, heroCamera);
+
+            // Journey animation
+            pathProgress += 0.005;
+            if (pathProgress > 1) pathProgress = 0;
+
+            const pointIndex = Math.floor(pathProgress * pathPoints.length);
+            const point = pathPoints[pointIndex];
+            sphere.position.copy(point);
+            journeyLight.position.copy(point);
+
+            path.rotation.y += 0.001;
+            journeyCamera.position.y = -scrollY * 0.002;
+
+            journeyRenderer.render(journeyScene, journeyCamera);
+
+            // Features animation - vehicles floating upward
+            featureVehicles.forEach(v => {
+                v.mesh.position.y += v.speed;
+                v.mesh.rotation.y += v.rotSpeed;
+                if (v.mesh.position.y > 12) v.mesh.position.y = -12;
+            });
+
+            featuresLight.position.x = Math.sin(Date.now() * 0.001) * 5;
+            featuresLight.position.y = Math.cos(Date.now() * 0.001) * 5;
+
+            featuresRenderer.render(featuresScene, featuresCamera);
+        }
+
+        animate();
+
+        // Handle scroll
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            heroCamera.aspect = width / height;
+            heroCamera.updateProjectionMatrix();
+            heroRenderer.setSize(width, height);
+
+            journeyCamera.aspect = width / height;
+            journeyCamera.updateProjectionMatrix();
+            journeyRenderer.setSize(width, journeyCanvas.parentElement.offsetHeight);
+
+            featuresCamera.aspect = width / height;
+            featuresCamera.updateProjectionMatrix();
+            featuresRenderer.setSize(width, featuresCanvas.parentElement.offsetHeight);
+        });
+
+        // Animate stats counter
+        function animateCounter(el) {
+            const target = parseFloat(el.dataset.target);
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+            const isDecimal = target % 1 !== 0;
+
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    el.textContent = isDecimal ? target.toFixed(1) : Math.round(target);
+                    clearInterval(timer);
+                } else {
+                    el.textContent = isDecimal ? current.toFixed(1) : Math.round(current);
+                }
+            }, 16);
+        }
+
+        // Intersection Observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+
+                    if (entry.target.classList.contains('stat-card')) {
+                        const counter = entry.target.querySelector('.stat-number');
+                        if (counter && !counter.dataset.animated) {
+                            counter.dataset.animated = 'true';
+                            animateCounter(counter);
+                        }
+                    }
+
+                    if (entry.target.classList.contains('journey-step')) {
+                        const line = document.querySelector('.journey-line');
+                        const steps = document.querySelectorAll('.journey-step.visible').length;
+                        const totalSteps = document.querySelectorAll('.journey-step').length;
+                        line.style.height = `${(steps / totalSteps) * 100}%`;
+                    }
+                }
+            });
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll('.stat-card, .journey-step, .feature-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
