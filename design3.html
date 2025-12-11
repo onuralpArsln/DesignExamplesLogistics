@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroGreen | Sustainable Logistics</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind to use class-based dark mode instead of system preference -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Simplex Noise for procedural terrain -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            background-color: #e0f2fe;
+            /* Light sky blue start */
+            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 1s ease;
+        }
+
+        body.night-mode {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            outline: none;
+        }
+
+        .section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10%;
+            position: relative;
+            pointer-events: none;
+        }
+
+        .content-box {
+            /* Increased opacity for better text readability */
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            padding: 2.5rem;
+            border-left: 5px solid #059669;
+            /* Darker Emerald Green */
+            max-width: 550px;
+            pointer-events: auto;
+            transform: translateY(50px);
+            opacity: 0;
+            border-radius: 0 1.5rem 1.5rem 0;
+            /* Stronger shadow for separation */
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            transition: background 0.5s, color 0.5s;
+        }
+
+        /* Using manual selector for box background to match the 3D scene toggle */
+        body.night-mode .content-box {
+            background: rgba(15, 23, 42, 0.95);
+            border-left: 5px solid #38bdf8;
+            /* Sky Blue for night */
+            color: white;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            opacity: 0.8;
+            color: #059669;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
+        .hidden-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #475569;
+            pointer-events: none;
+            z-index: 100;
+            font-weight: 600;
+        }
+
+        .accent-green {
+            color: #059669;
+        }
+
+        .accent-blue {
+            color: #0284c7;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay -->
+    <nav class="fixed top-0 w-full p-6 flex justify-between items-center z-50 pointer-events-none">
+        <div class="text-2xl font-bold tracking-tight uppercase pointer-events-auto cursor-pointer text-slate-900 transition-colors duration-500 drop-shadow-sm"
+            id="nav-logo">
+            AERO<span class="text-emerald-600">GREEN</span>
+        </div>
+        <div class="pointer-events-auto space-x-6 text-sm font-bold hidden md:block text-slate-700 transition-colors duration-500"
+            id="nav-links">
+            <a href="#" class="hover:text-emerald-600 transition">Sustainability</a>
+            <a href="#" class="hover:text-emerald-600 transition">Network</a>
+            <a href="#" class="hover:text-emerald-600 transition">Contact</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="section" id="s1">
+            <div class="content-box">
+                <h1 class="text-5xl font-extrabold mb-4 leading-tight text-slate-900 dark:text-white">Logistics for a
+                    <br><span class="accent-green">Greener Planet.</span>
+                </h1>
+                <p class="text-slate-700 dark:text-slate-300 text-lg mb-6 font-medium">Carbon-neutral shipping at the
+                    speed of flight. We connect continents without compromising the future.</p>
+                <button
+                    class="bg-emerald-600 text-white px-8 py-3 font-bold rounded-full hover:bg-emerald-700 transition shadow-lg transform hover:scale-105">Explore
+                    Our Mission</button>
+            </div>
+            <div class="scroll-indicator">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </div>
+        </section>
+
+        <section class="section justify-end items-end text-right" id="s2">
+            <div class="content-box"
+                style="border-left: none; border-right: 5px solid #0284c7; border-radius: 1.5rem 0 0 1.5rem;">
+                <h2 class="text-4xl font-bold mb-4 text-slate-900 dark:text-white">Global <span
+                        class="accent-blue">Reach</span></h2>
+                <p class="text-slate-700 dark:text-slate-300 mb-4 font-medium">Our AI-optimized flight paths reduce fuel
+                    consumption by 30%. From Tokyo to Toronto, efficiency is our compass.</p>
+            </div>
+        </section>
+
+        <section class="section items-center text-center" id="s3">
+            <div class="content-box"
+                style="border: none; border-top: 5px solid #059669; border-radius: 1.5rem; max-width: 600px;">
+                <h2 class="text-4xl font-bold mb-4 text-slate-900 dark:text-white">Silent <span
+                        class="accent-green">Innovation</span></h2>
+                <p class="text-slate-700 dark:text-slate-300 font-medium">Quiet supersonic gliders ensure your cargo
+                    arrives before you wake up, without waking up the neighborhood.</p>
+            </div>
+        </section>
+
+        <section class="section" id="s4">
+            <div class="content-box">
+                <h2 class="text-4xl font-bold mb-4 text-slate-900 dark:text-white">Ready to <span
+                        class="accent-blue">Fly?</span></h2>
+                <p class="text-slate-700 dark:text-slate-300 mb-6 font-medium">Join the eco-revolution.</p>
+                <button
+                    class="bg-slate-800 text-white dark:bg-white dark:text-slate-900 px-8 py-4 font-bold rounded-full hover:opacity-90 transition w-full shadow-xl">Get
+                    a Quote</button>
+            </div>
+        </section>
+    </main>
+
+    <div class="hidden-hint">Press 'N' for Night Mode • Click Plane to Roll</div>
+
+    <script>
+        // --- 1. SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        // Soft fog that matches background
+        const fogColor = new THREE.Color(0xe0f2fe);
+        scene.fog = new THREE.Fog(fogColor, 10, 50);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // --- 2. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        // The Sun
+        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.3);
+        sunLight.position.set(20, 30, 20);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 500;
+        sunLight.shadow.camera.left = -50;
+        sunLight.shadow.camera.right = 50;
+        sunLight.shadow.camera.top = 50;
+        sunLight.shadow.camera.bottom = -50;
+        scene.add(sunLight);
+
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+        scene.add(hemiLight);
+
+        // --- 3. THE WORLD (Low Poly Earth) ---
+        const earthGroup = new THREE.Group();
+        scene.add(earthGroup);
+
+        // 3a. The Ocean Sphere
+        const oceanGeo = new THREE.IcosahedronGeometry(14, 4); // Radius 14
+        const oceanMat = new THREE.MeshPhongMaterial({
+            color: 0x1d4ed8, // Deep Royal Blue (Blue 700) for contrast
+            shininess: 60,
+            flatShading: true
+        });
+        const ocean = new THREE.Mesh(oceanGeo, oceanMat);
+        ocean.receiveShadow = true;
+        earthGroup.add(ocean);
+
+        // 3b. Procedural Continents (Low Poly chunks)
+        const landGeo = new THREE.IcosahedronGeometry(14, 3);
+        const positionAttribute = landGeo.getAttribute('position');
+        const vertex = new THREE.Vector3();
+        const simplex = new SimplexNoise();
+
+        // Perturb vertices using noise to make islands
+        for (let i = 0; i < positionAttribute.count; i++) {
+            vertex.fromBufferAttribute(positionAttribute, i);
+            // Noise based on vertex position
+            const noise = simplex.noise3D(vertex.x * 0.1, vertex.y * 0.1, vertex.z * 0.1);
+
+            // If noise is high, extrude out (land). If low, push in (hidden by ocean)
+            const distortion = noise > 0.2 ? 1 + (noise * 0.1) : 0.9;
+            vertex.multiplyScalar(distortion);
+            positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+        }
+
+        landGeo.computeVertexNormals();
+        const landMat = new THREE.MeshLambertMaterial({
+            color: 0x15803d, // Darker, Richer Green (Green 700)
+            flatShading: true
+        });
+        const land = new THREE.Mesh(landGeo, landMat);
+        land.receiveShadow = true;
+        land.castShadow = true;
+        earthGroup.add(land);
+
+        // 3c. Clouds
+        const cloudGroup = new THREE.Group();
+        earthGroup.add(cloudGroup);
+        const cloudGeo = new THREE.DodecahedronGeometry(1, 0);
+        const cloudMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            opacity: 0.9,
+            transparent: true,
+            flatShading: true
+        });
+
+        const clouds = [];
+        for (let i = 0; i < 60; i++) {
+            const mesh = new THREE.Mesh(cloudGeo, cloudMat);
+
+            // Random position on sphere surface + offset altitude
+            const phi = Math.random() * Math.PI * 2;
+            const theta = Math.acos(2 * Math.random() - 1);
+            const r = 16 + Math.random() * 3; // Altitude
+
+            mesh.position.set(
+                r * Math.sin(theta) * Math.cos(phi),
+                r * Math.sin(theta) * Math.sin(phi),
+                r * Math.cos(theta)
+            );
+
+            // Random rotation & scale
+            mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+            const scale = Math.random() * 1.5 + 0.5;
+            mesh.scale.set(scale, scale * 0.6, scale);
+
+            mesh.lookAt(0, 0, 0); // Orient to center
+            cloudGroup.add(mesh);
+            clouds.push(mesh);
+        }
+
+        // --- 4. THE PLANE ---
+        const planeGroup = new THREE.Group();
+        scene.add(planeGroup);
+
+        const planeMatBody = new THREE.MeshStandardMaterial({
+            color: 0x1e293b,
+            roughness: 0.4,
+            metalness: 0.7
+        });
+        const planeMatWings = new THREE.MeshStandardMaterial({
+            color: 0x94a3b8,
+            roughness: 0.4,
+            metalness: 0.6
+        });
+
+        // 1. Fuselage
+        // Main body Cylinder
+        const fuselageGeo = new THREE.CylinderGeometry(0.3, 0.2, 2.5, 12);
+        fuselageGeo.rotateX(-Math.PI / 2); // Align with Z
+        const fuselage = new THREE.Mesh(fuselageGeo, planeMatBody);
+        fuselage.position.z = -0.5;
+        fuselage.castShadow = true;
+        planeGroup.add(fuselage);
+
+        // Nose Cone
+        const noseGeo = new THREE.ConeGeometry(0.3, 1, 12);
+        noseGeo.rotateX(-Math.PI / 2);
+        const nose = new THREE.Mesh(noseGeo, planeMatBody);
+        nose.position.z = -2.25;
+        nose.castShadow = true;
+        planeGroup.add(nose);
+
+        // Cockpit Window (Simple Sphere intersect)
+        const glassGeo = new THREE.SphereGeometry(0.25, 16, 16);
+        glassGeo.scale(1, 0.6, 2);
+        const glassMat = new THREE.MeshPhysicalMaterial({
+            color: 0x38bdf8,
+            metalness: 0.9,
+            roughness: 0.1,
+            transparent: true,
+            opacity: 0.7
+        });
+        const cockpit = new THREE.Mesh(glassGeo, glassMat);
+        cockpit.position.set(0, 0.2, -1.5);
+        planeGroup.add(cockpit);
+
+        // 2. Wings (Swept back)
+        const wingGeo = new THREE.BoxGeometry(2, 0.05, 0.8);
+
+        const wingL = new THREE.Mesh(wingGeo, planeMatWings);
+        wingL.position.set(-1.1, 0, -0.2);
+        wingL.rotation.y = -0.2; // Sweep back
+        wingL.rotation.z = 0.1;  // Dihedral (upward tilt)
+        wingL.castShadow = true;
+        planeGroup.add(wingL);
+
+        const wingR = new THREE.Mesh(wingGeo, planeMatWings);
+        wingR.position.set(1.1, 0, -0.2);
+        wingR.rotation.y = 0.2; // Sweep back
+        wingR.rotation.z = -0.1; // Dihedral
+        wingR.castShadow = true;
+        planeGroup.add(wingR);
+
+        // 3. Tail
+        // Vertical Stabilizer
+        const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.05), planeMatWings);
+        vTail.position.set(0, 0.5, 0.8);
+        vTail.rotation.x = -0.3; // Sweep back angle
+        vTail.castShadow = true;
+        planeGroup.add(vTail);
+
+        // Horizontal Stabilizers
+        const hTailGeo = new THREE.BoxGeometry(1.2, 0.05, 0.5);
+        const hTail = new THREE.Mesh(hTailGeo, planeMatWings);
+        hTail.position.set(0, 0.1, 0.9);
+        hTail.castShadow = true;
+        planeGroup.add(hTail);
+
+        // Engine Glow (Rear)
+        const engineGeo = new THREE.CylinderGeometry(0.15, 0.25, 0.2, 16);
+        engineGeo.rotateX(-Math.PI / 2);
+        const engineMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+        const engine = new THREE.Mesh(engineGeo, engineMat);
+        engine.position.z = 0.8;
+        planeGroup.add(engine);
+
+        // Point Light for engine
+        const engineLight = new THREE.PointLight(0x06b6d4, 1, 2);
+        engineLight.position.z = 1.0;
+        planeGroup.add(engineLight);
+
+
+        // --- 5. ANIMATION & SCROLL ---
+
+        // Position Earth and Plane
+        earthGroup.position.set(0, -14.5, 0); // Earth sits below view slightly
+        planeGroup.position.set(0, 0, 5); // Start at Z=5
+
+        camera.position.set(0, 2, 10);
+        camera.lookAt(0, 0, 0);
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1.5 // Increased scrub for smoother feel
+            }
+        });
+
+        // SCROLL SEQUENCE
+
+        // 1. Earth rotates, Plane dives slightly
+        tl.to(earthGroup.rotation, {
+            x: 0.5,
+            y: 2,
+            duration: 10,
+            ease: "none"
+        }, "start");
+
+        tl.to(cloudGroup.rotation, {
+            y: 2.2, // Clouds move slightly faster than earth
+            duration: 10,
+            ease: "none"
+        }, "start");
+
+        // Section 1 -> 2: Camera pulls back for global view
+        tl.to(camera.position, {
+            z: 15,
+            y: 5,
+            duration: 3
+        }, "start");
+
+        // Section 2 -> 3: Dive low (Action shot)
+        tl.to(camera.position, {
+            x: 4,
+            y: 1,
+            z: 7,
+            duration: 3,
+            onUpdate: () => camera.lookAt(planeGroup.position)
+        }, "mid");
+
+        tl.to(planeGroup.rotation, {
+            z: -0.5, // Bank left
+            x: 0.2, // Pitch up
+            duration: 3
+        }, "mid");
+
+        // Section 3 -> 4: Fly off into distance - SMOOTH HERO SHOT
+        // Plane continues forward but stabilizes
+        tl.to(planeGroup.position, {
+            z: -5, // Flies forward
+            y: 1,
+            x: 0,
+            duration: 5,
+            ease: "power2.inOut" // Smooth ease
+        }, "end");
+
+        tl.to(planeGroup.rotation, {
+            z: 0,
+            x: 0,
+            y: 0, // Level out
+            duration: 5,
+            ease: "power2.inOut"
+        }, "end");
+
+        // Camera overtakes plane to look at the nose (Front Faced)
+        tl.to(camera.position, {
+            x: 0,
+            y: 0.5,
+            z: -14, // Move IN FRONT of the plane (which is at -5)
+            duration: 5,
+            ease: "power2.inOut",
+            onUpdate: () => camera.lookAt(planeGroup.position)
+        }, "end");
+
+
+        // --- 6. INTERACTION ---
+
+        // Mouse banking
+        let mouseX = 0;
+        let mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+
+            // Raycaster for cloud hover
+            checkClouds(e.clientX, e.clientY);
+        });
+
+        // Raycaster
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function checkClouds(cx, cy) {
+            mouse.x = (cx / window.innerWidth) * 2 - 1;
+            mouse.y = -(cy / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            // Check intersection with clouds
+            const intersects = raycaster.intersectObjects(cloudGroup.children);
+            if (intersects.length > 0) {
+                // Poof effect: scale down
+                gsap.to(intersects[0].object.scale, {
+                    x: 0.1, y: 0.1, z: 0.1,
+                    duration: 0.5,
+                    ease: "back.in"
+                });
+                document.body.style.cursor = 'pointer';
+            } else {
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        // Barrel Roll
+        window.addEventListener('click', (e) => {
+            // Check if clicking plane
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(planeGroup.children);
+
+            if (hits.length > 0) {
+                gsap.to(planeGroup.rotation, {
+                    z: planeGroup.rotation.z + Math.PI * 2,
+                    duration: 1,
+                    ease: "power2.inOut"
+                });
+            }
+        });
+
+        // Night Mode
+        let isNight = false;
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'n') {
+                isNight = !isNight;
+                const body = document.body;
+                // Toggle the 'dark' class for Tailwind, synchronizing with the scene
+                document.documentElement.classList.toggle('dark');
+
+                if (isNight) {
+                    body.classList.add('night-mode');
+                    gsap.to(scene.fog.color, { r: 0.06, g: 0.09, b: 0.16, duration: 1 }); // Dark blue fog
+                    gsap.to(oceanMat.color, { r: 0.05, g: 0.1, b: 0.3, duration: 1 }); // Dark ocean
+                    gsap.to(sunLight, { intensity: 0.1, duration: 1 }); // Dim sun
+                    gsap.to(hemiLight, { intensity: 0.2, duration: 1 });
+
+                    engineMat.color.setHex(0xff00ff);
+                    engineLight.color.setHex(0xff00ff);
+
+                    document.getElementById('nav-logo').classList.add('text-white');
+                    document.getElementById('nav-links').classList.add('text-gray-300');
+                } else {
+                    body.classList.remove('night-mode');
+                    gsap.to(scene.fog.color, { r: 0.88, g: 0.95, b: 1, duration: 1 }); // Light fog
+                    gsap.to(oceanMat.color, { r: 0.11, g: 0.3, b: 0.85, duration: 1 }); // Blue ocean
+                    gsap.to(sunLight, { intensity: 1.3, duration: 1 });
+                    gsap.to(hemiLight, { intensity: 0.6, duration: 1 });
+
+                    engineMat.color.setHex(0x06b6d4);
+                    engineLight.color.setHex(0x06b6d4);
+
+                    document.getElementById('nav-logo').classList.remove('text-white');
+                    document.getElementById('nav-links').classList.remove('text-gray-300');
+                }
+            }
+        });
+
+        // Content Entry Animation
+        gsap.utils.toArray('.content-box').forEach(box => {
+            gsap.to(box, {
+                opacity: 1,
+                y: 0,
+                duration: 1,
+                scrollTrigger: {
+                    trigger: box,
+                    start: "top 80%",
+                }
+            });
+        });
+
+        // --- 7. LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Plane subtle movement (floating)
+            planeGroup.position.y += Math.sin(Date.now() * 0.002) * 0.002;
+
+            // Mouse parallax tilt
+            const targetRotZ = -mouseX * 0.5;
+            const targetRotX = -mouseY * 0.2;
+
+            if (!gsap.isTweening(planeGroup.rotation)) {
+                planeGroup.rotation.z += 0.05 * (targetRotZ - planeGroup.rotation.z);
+                planeGroup.rotation.x += 0.05 * (targetRotX - planeGroup.rotation.x);
+            }
+
+            earthGroup.rotation.y += 0.0005;
+            cloudGroup.rotation.y += 0.0002;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+
+</html>
