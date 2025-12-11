@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VelocityShip - Global Logistics Reimagined</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            overflow-x: hidden;
+            cursor: none;
+            position: relative;
+        }
+
+        .wireframe-earth {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            width: 600px;
+            height: 600px;
+            z-index: 0;
+            pointer-events: none;
+            perspective: 2000px;
+            opacity: 0.5;
+        }
+
+        .earth-sphere {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateY(0deg) rotateX(20deg);
+            transition: transform 0.1s linear;
+        }
+
+        .earth-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 212, 255, 0.5);
+            left: 0;
+            top: 0;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .earth-ring:nth-child(1) {
+            transform: rotateX(0deg);
+        }
+
+        .earth-ring:nth-child(2) {
+            transform: rotateX(30deg);
+        }
+
+        .earth-ring:nth-child(3) {
+            transform: rotateX(60deg);
+        }
+
+        .earth-ring:nth-child(4) {
+            transform: rotateX(90deg);
+        }
+
+        .earth-ring:nth-child(5) {
+            transform: rotateX(120deg);
+        }
+
+        .earth-ring:nth-child(6) {
+            transform: rotateX(150deg);
+        }
+
+        .earth-ring:nth-child(7) {
+            transform: rotateY(30deg);
+        }
+
+        .earth-ring:nth-child(8) {
+            transform: rotateY(60deg);
+        }
+
+        .earth-ring:nth-child(9) {
+            transform: rotateY(90deg);
+        }
+
+        .earth-ring:nth-child(10) {
+            transform: rotateY(120deg);
+        }
+
+        .earth-ring:nth-child(11) {
+            transform: rotateY(150deg);
+        }
+
+        .earth-ring:nth-child(12) {
+            transform: rotateY(0deg);
+            border-color: rgba(123, 47, 247, 0.6);
+            box-shadow: 0 0 30px rgba(123, 47, 247, 0.5);
+            overflow: hidden;
+        }
+
+        .earth-ring:nth-child(12)::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(from 0deg,
+                    transparent 0deg,
+                    transparent 270deg,
+                    rgba(123, 47, 247, 0.8) 300deg,
+                    rgba(0, 212, 255, 0.8) 330deg,
+                    transparent 360deg);
+            border-radius: 50%;
+            animation: radarScan 3s linear infinite;
+        }
+
+        @keyframes radarScan {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00d4ff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transition: all 0.1s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .custom-cursor.hover {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+        }
+
+        section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translateY(0) rotateX(60deg);
+            }
+
+            100% {
+                transform: translateY(50px) rotateX(60deg);
+            }
+        }
+
+        .floating-packages {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .package {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #1a1f3a, #0f1425);
+            border: 2px solid #00d4ff;
+            border-radius: 5px;
+            animation: float 15s infinite ease-in-out;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .package:hover {
+            transform: scale(1.5) rotateZ(180deg);
+            opacity: 1;
+        }
+
+        .package:nth-child(1) {
+            left: 10%;
+            top: 20%;
+            animation-delay: 0s;
+        }
+
+        .package:nth-child(2) {
+            left: 80%;
+            top: 30%;
+            animation-delay: 2s;
+        }
+
+        .package:nth-child(3) {
+            left: 30%;
+            top: 70%;
+            animation-delay: 4s;
+        }
+
+        .package:nth-child(4) {
+            left: 70%;
+            top: 60%;
+            animation-delay: 6s;
+        }
+
+        .package:nth-child(5) {
+            left: 50%;
+            top: 15%;
+            animation-delay: 8s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateZ(0deg);
+            }
+
+            50% {
+                transform: translateY(-30px) rotateZ(180deg);
+            }
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 10;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 40px rgba(123, 47, 247, 0.8));
+            }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #8892b0;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            padding: 1.2rem 3rem;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-weight: 600;
+        }
+
+        .cta-button:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .cta-button:hover:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.5);
+        }
+
+        .stats-section {
+            padding: 5rem 2rem;
+            position: relative;
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, #1a1f3a, #0f1425);
+            padding: 2.5rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            transition: all 0.4s ease;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: rotateY(10deg) rotateX(10deg) translateY(-10px);
+            border-color: #00d4ff;
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #8892b0;
+            font-size: 1.1rem;
+        }
+
+        .features-section {
+            padding: 5rem 2rem;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: linear-gradient(145deg, #1a1f3a, #0f1425);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .feature-card:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .feature-card:hover:before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: #00d4ff;
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.4);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .feature-card:hover .feature-icon {
+            animation: spin 1s ease;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotateY(0deg);
+            }
+
+            to {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+
+        .feature-description {
+            color: #8892b0;
+            line-height: 1.6;
+        }
+
+
+
+        .easter-egg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #7b2ff7, #00d4ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            animation: wiggle 3s infinite;
+        }
+
+        @keyframes wiggle {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(-10deg);
+            }
+
+            75% {
+                transform: rotate(10deg);
+            }
+        }
+
+        .easter-egg:hover {
+            transform: scale(1.2) rotate(180deg);
+        }
+
+        .secret-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(145deg, #1a1f3a, #0f1425);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 2px solid #00d4ff;
+            z-index: 10001;
+            text-align: center;
+            transition: all 0.5s ease;
+            max-width: 400px;
+        }
+
+        .secret-message.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: scrollBounce 2s infinite;
+        }
+
+        @keyframes scrollBounce {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(10px);
+            }
+        }
+
+        .mouse {
+            width: 30px;
+            height: 50px;
+            border: 2px solid #00d4ff;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .mouse:before {
+            content: '';
+            width: 4px;
+            height: 8px;
+            background: #00d4ff;
+            border-radius: 2px;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: mouseScroll 2s infinite;
+        }
+
+        @keyframes mouseScroll {
+            0% {
+                top: 10px;
+                opacity: 1;
+            }
+
+            100% {
+                top: 30px;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wireframe-earth">
+        <div class="earth-sphere">
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+            <div class="earth-ring"></div>
+        </div>
+    </div>
+
+    <div class="custom-cursor"></div>
+
+    <section class="hero">
+        <div class="grid-bg"></div>
+        <div class="floating-packages">
+            <div class="package"></div>
+            <div class="package"></div>
+            <div class="package"></div>
+            <div class="package"></div>
+            <div class="package"></div>
+        </div>
+        <div class="hero-content">
+            <h1>VelocityShip</h1>
+            <p class="subtitle">Delivering Tomorrow, Today</p>
+            <button class="cta-button">Start Your Journey</button>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse"></div>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" data-target="50">0</div>
+                <div class="stat-label">Countries Served</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="1000000">0</div>
+                <div class="stat-label">Packages Delivered</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="99">0</div>
+                <div class="stat-label">On-Time Rate %</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="24">0</div>
+                <div class="stat-label">Hour Support</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <h2 class="section-title">Why Choose Us</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3 class="feature-title">Lightning Fast</h3>
+                <p class="feature-description">Express delivery in record time with our advanced logistics network</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h3 class="feature-title">Global Reach</h3>
+                <p class="feature-description">Connect to every corner of the world with our extensive network</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">Secure Transit</h3>
+                <p class="feature-description">Your packages protected with military-grade security protocols</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">Real-Time Tracking</h3>
+                <p class="feature-description">Monitor your shipment every step of the way with live updates</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">♻️</div>
+                <h3 class="feature-title">Eco-Friendly</h3>
+                <p class="feature-description">Carbon-neutral shipping options for a sustainable future</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💎</div>
+                <h3 class="feature-title">Premium Care</h3>
+                <p class="feature-description">White-glove service for your most valuable items</p>
+            </div>
+        </div>
+    </section>
+
+
+
+    <div class="easter-egg">🎁</div>
+
+    <div class="secret-message">
+        <h2 style="color: #00d4ff; margin-bottom: 1rem;">🎉 You Found It!</h2>
+        <p style="color: #8892b0;">Congratulations! Use code <strong style="color: #7b2ff7;">DISCOVER50</strong> for 50%
+            off your first shipment!</p>
+        <button class="cta-button" style="margin-top: 1.5rem;" onclick="closeSecret()">Claim Offer</button>
+    </div>
+
+    <script>
+        // Custom cursor
+        const cursor = document.querySelector('.custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        document.querySelectorAll('button, .stat-card, .feature-card, .package, .easter-egg').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // Counter animation
+        const observerOptions = {
+            threshold: 0.5
+        };
+
+        const animateCounter = (element) => {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const updateCounter = () => {
+                current += step;
+                if (current < target) {
+                    element.textContent = Math.floor(current).toLocaleString();
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    element.textContent = target.toLocaleString() + (element.parentElement.querySelector('.stat-label').textContent.includes('%') ? '%' : '');
+                }
+            };
+            updateCounter();
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target.querySelector('.stat-number');
+                    if (counter && counter.textContent === '0') {
+                        animateCounter(counter);
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.stat-card').forEach(card => observer.observe(card));
+
+        // Easter egg
+        let clickCount = 0;
+        document.querySelector('.easter-egg').addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 1) {
+                document.querySelector('.secret-message').classList.add('show');
+            }
+        });
+
+        function closeSecret() {
+            document.querySelector('.secret-message').classList.remove('show');
+            alert('Offer claimed! Check your email for details.');
+        }
+
+        // 3D tilt effect for cards
+        document.querySelectorAll('.stat-card, .feature-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = (y - centerY) / 10;
+                const rotateY = (centerX - x) / 10;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+            });
+        });
+
+        // Parallax effect and earth rotation
+        document.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallaxElements = document.querySelectorAll('.floating-packages');
+            parallaxElements.forEach(el => {
+                el.style.transform = `translateY(${scrolled * 0.5}px)`;
+            });
+
+            // Add additional rotation to wireframe earth based on scroll
+            const earth = document.querySelector('.earth-sphere');
+            const additionalRotation = scrolled * 0.15;
+            earth.style.transform = `rotateY(${additionalRotation}deg) rotateX(${20 + scrolled * 0.05}deg)`;
+        });
+
+        // CTA button ripple effect
+        document.querySelectorAll('.cta-button').forEach(button => {
+            button.addEventListener('click', function (e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const ripple = document.createElement('span');
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>
