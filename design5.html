@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LogiFlow - Geleceğin Lojistiği</title>
+    <meta name="description" content="Hızlı, güvenilir ve teknoloji odaklı lojistik çözümleri.">
+
+    <!-- Three.js ve GSAP Kütüphaneleri (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #FF4C29;
+            /* Neon Turuncu */
+            --secondary: #082032;
+            /* Derin Lacivert */
+            --text: #ffffff;
+            --accent: #2C394B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--secondary);
+            color: var(--text);
+            overflow-x: hidden;
+            /* Overscroll davranışını engelle */
+            overscroll-behavior-y: none;
+        }
+
+        /* 3D Canvas Arka Planı */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a2f44 0%, #082032 100%);
+        }
+
+        /* Yükleme Ekranı */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--secondary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* İçerik Düzeni */
+        main {
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            /* Dokunmatik olayların arkadaki canvas'a (kısmen) geçmesine izin ver ama metin seçilebilir olsun */
+            pointer-events: none;
+        }
+
+        .content-box {
+            pointer-events: auto;
+            /* Metinler etkileşime açık */
+            max-width: 600px;
+            background: rgba(8, 32, 50, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+
+        section.active .content-box {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Hizalama Varyasyonları */
+        .left {
+            align-items: flex-start;
+        }
+
+        .right {
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .center {
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1.5rem;
+        }
+
+        button.cta {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 76, 41, 0.4);
+        }
+
+        button.cta:active {
+            transform: scale(0.95);
+        }
+
+        /* Mobil İpucu */
+        .scroll-hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
+        /* Easter Egg İpucu */
+        .interaction-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .content-box {
+                width: 100%;
+                background: rgba(8, 32, 50, 0.5);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Yükleme Göstergesi -->
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- 3D Sahne -->
+    <div id="canvas-container"></div>
+
+    <!-- Etkileşim İpucu -->
+    <div class="interaction-hint" id="hint">Sürpriz için araçlara dokun!</div>
+
+    <main>
+        <!-- Bölüm 1: Hero / Global -->
+        <section class="left active" id="sec-home">
+            <div class="content-box">
+                <h1>Dünya Küçülüyor,<br>İşiniz Büyüyor.</h1>
+                <p>LogiFlow ile sınırları kaldırın. Global ağımızla kargolarınız her an, her yerde takip altında.</p>
+                <button class="cta">Rotanızı Oluşturun</button>
+            </div>
+            <div class="scroll-hint">Keşfetmek için Kaydır</div>
+        </section>
+
+        <!-- Bölüm 2: Karayolu / Tır -->
+        <section class="right" id="sec-road">
+            <div class="content-box">
+                <h2>Kesintisiz Akış</h2>
+                <p>Akıllı filo yönetim sistemimiz, trafiği ve hava durumunu analiz ederek en hızlı rotayı otomatik
+                    belirler. Beklemek yok, mazeret yok.</p>
+                <button class="cta">Filomuzu İncele</button>
+            </div>
+        </section>
+
+        <!-- Bölüm 3: Hava & Teknoloji -->
+        <section class="center" id="sec-tech">
+            <div class="content-box">
+                <h2>Hızın Ötesinde</h2>
+                <p>Yapay zeka destekli depolama ve hava kargo entegrasyonu ile teslimat sürelerini %40 kısaltıyoruz.</p>
+                <button class="cta">Teklif Alın</button>
+            </div>
+        </section>
+
+        <!-- Boşluk / Footer Geçişi -->
+        <section style="height: 50vh; min-height: auto; justify-content: flex-end; align-items: center;">
+            <p style="opacity: 0.6; font-size: 0.9rem;">© 2025 LogiFlow. Tüm hakları saklıdır.</p>
+        </section>
+    </main>
+
+    <script>
+        // --- 1. AYARLAR & DEĞİŞKENLER ---
+        const container = document.getElementById('canvas-container');
+        const loader = document.getElementById('loader');
+        const hint = document.getElementById('hint');
+
+        let scene, camera, renderer;
+        let truckGroup, planeGroup, globeGroup, particles;
+        let scrollPercent = 0;
+        let targetScrollPercent = 0;
+
+        // Etkileşim için Raycaster
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Renkler
+        const colors = {
+            primary: 0xFF4C29,
+            dark: 0x082032,
+            metal: 0x334756,
+            light: 0xFFFFFF
+        };
+
+        // --- 2. SAHNE KURULUMU ---
+        function init() {
+            scene = new THREE.Scene();
+            // Sis, derinlik hissi verir ve uzak nesnelerin kaybolmasını sağlar (Performans dostu)
+            scene.fog = new THREE.Fog(colors.dark, 10, 50);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 0, 5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Mobil performans için max 2x
+            container.appendChild(renderer.domElement);
+
+            // Basit Işıklandırma (Hesaplama maliyeti düşük)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(5, 10, 7);
+            scene.add(dirLight);
+
+            // Nesneleri Oluştur
+            createGlobe();
+            createTruck();
+            createPlane();
+            createParticles();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('scroll', onScroll);
+            window.addEventListener('mousemove', onMouseMove); // Paralaks için
+
+            // Tıklama / Dokunma Etkileşimi
+            window.addEventListener('pointerdown', onPointerDown);
+
+            // Yükleme bitti
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }, 1000);
+
+            animate();
+        }
+
+        // --- 3. MODEL OLUŞTURMA (Procedural - Low Poly) ---
+
+        function createGlobe() {
+            globeGroup = new THREE.Group();
+
+            // Tel kafes dünya
+            const geometry = new THREE.IcosahedronGeometry(2, 1);
+            const material = new THREE.MeshBasicMaterial({
+                color: colors.primary,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+            const globe = new THREE.Mesh(geometry, material);
+            globeGroup.add(globe);
+
+            // İç çekirdek (dolu)
+            const coreGeo = new THREE.IcosahedronGeometry(1.8, 0);
+            const coreMat = new THREE.MeshLambertMaterial({ color: 0x1a2f44 });
+            const core = new THREE.Mesh(coreGeo, coreMat);
+            globeGroup.add(core);
+
+            globeGroup.position.set(2, 0, -2); // Başlangıç pozisyonu
+            scene.add(globeGroup);
+        }
+
+        function createTruck() {
+            truckGroup = new THREE.Group();
+
+            // Materyal (Tüm parçalar için ortak - Draw call azaltır)
+            const bodyMat = new THREE.MeshLambertMaterial({ color: colors.light });
+            const cabinMat = new THREE.MeshLambertMaterial({ color: colors.primary });
+            const wheelMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+
+            // Şasi (Dorse)
+            const trailer = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 1), bodyMat);
+            trailer.position.set(0, 0.7, 0);
+            truckGroup.add(trailer);
+
+            // Kupa (Kabin)
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1, 1), cabinMat);
+            cabin.position.set(1.4, 0.7, 0);
+            truckGroup.add(cabin);
+
+            // Tekerlekler (Basit silindirler yerine küpler kullanıp siyaha boyayabiliriz, ama silindir daha iyi görünür)
+            const wheelGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 8); // Düşük segment sayısı (8)
+            wheelGeo.rotateX(Math.PI / 2);
+
+            const positions = [
+                [-0.8, 0.3, 0.5], [-0.8, 0.3, -0.5],
+                [0.5, 0.3, 0.5], [0.5, 0.3, -0.5],
+                [1.5, 0.3, 0.5], [1.5, 0.3, -0.5]
+            ];
+
+            positions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                wheel.position.set(...pos);
+                truckGroup.add(wheel);
+            });
+
+            // "Easter Egg" verisi ekle
+            truckGroup.userData = { type: 'truck', originalScale: 1 };
+
+            truckGroup.position.set(-10, -2, -5); // Başlangıçta sahne dışında
+            scene.add(truckGroup);
+        }
+
+        function createPlane() {
+            planeGroup = new THREE.Group();
+
+            const whiteMat = new THREE.MeshLambertMaterial({ color: colors.light });
+            const orangeMat = new THREE.MeshLambertMaterial({ color: colors.primary });
+
+            // Gövde
+            const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 3, 8), whiteMat);
+            fuselage.rotation.z = Math.PI / 2;
+            planeGroup.add(fuselage);
+
+            // Kanatlar
+            const wingGeo = new THREE.BoxGeometry(1, 0.1, 3);
+            const wings = new THREE.Mesh(wingGeo, orangeMat);
+            wings.position.set(0.5, 0, 0);
+            planeGroup.add(wings);
+
+            // Kuyruk
+            const tailGeo = new THREE.BoxGeometry(0.5, 0.1, 1);
+            const tail = new THREE.Mesh(tailGeo, orangeMat);
+            tail.position.set(-1.2, 0.3, 0);
+            planeGroup.add(tail);
+
+            planeGroup.userData = { type: 'plane' };
+            planeGroup.position.set(10, 5, -10); // Sahne dışı
+            scene.add(planeGroup);
+        }
+
+        function createParticles() {
+            // Hız efekti için basit noktalar
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+
+            for (let i = 0; i < 200; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 40,
+                    (Math.random() - 0.5) * 40,
+                    (Math.random() - 0.5) * 100 // Derinlik boyunca
+                );
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.5 });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        // --- 4. ANİMASYON MANTIĞI ---
+
+        function onScroll() {
+            // Scroll yüzdesini hesapla (0 ile 1 arası)
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            targetScrollPercent = window.scrollY / docHeight;
+
+            // DOM elementlerini görünür yap
+            const sections = document.querySelectorAll('section');
+            sections.forEach(sec => {
+                const rect = sec.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.75) {
+                    sec.classList.add('active');
+                }
+            });
+
+            // İpucunu göster (belirli bir scroll sonrası)
+            if (window.scrollY > 100) {
+                hint.style.opacity = '1';
+                setTimeout(() => { hint.style.opacity = '0'; }, 5000);
+            }
+        }
+
+        // Paralaks değişkenleri
+        let mouseX = 0;
+        let mouseY = 0;
+
+        function onMouseMove(event) {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onPointerDown(event) {
+            // Raycaster ayarla
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            // Tır veya uçak grubu içindeki mesh'lerle kesişimi kontrol et
+            // Not: Raycaster grup yerine mesh'leri check eder, o yüzden recursive true
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                // En yakın objenin kök grubunu bul
+                let object = intersects[0].object;
+                while (object.parent && object.parent !== scene) {
+                    object = object.parent;
+                }
+
+                if (object.userData.type === 'truck') {
+                    // Tır Etkileşimi: Zıpla ve Renk Değiştir
+                    gsap.to(object.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.1, yoyo: true, repeat: 1 });
+                    gsap.to(object.rotation, { y: object.rotation.y + Math.PI * 2, duration: 0.5 });
+                }
+
+                if (object.userData.type === 'plane') {
+                    // Uçak Etkileşimi: Fıçı tono (Barrel roll)
+                    gsap.to(object.rotation, { z: object.rotation.z - Math.PI * 2, duration: 1, ease: "power2.inOut" });
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Yumuşak Scroll Değeri (Lerp)
+            scrollPercent += (targetScrollPercent - scrollPercent) * 0.05;
+
+            // --- SAHNE ANİMASYONLARI (ZAMAN ÇİZELGESİ) ---
+
+            // 1. Dünya Dönüşü (Sürekli + Scroll hızlandırmalı)
+            if (globeGroup) {
+                globeGroup.rotation.y += 0.002 + (targetScrollPercent - scrollPercent) * 0.1;
+                globeGroup.rotation.x = scrollPercent * 0.5;
+
+                // Scroll'a göre dünyayı sola kaydırıp yok et
+                if (scrollPercent < 0.3) {
+                    globeGroup.position.x = 2 - (scrollPercent * 10);
+                    globeGroup.scale.setScalar(1 - scrollPercent);
+                }
+            }
+
+            // 2. Tır Hareketi (Bölüm 2'de belirir)
+            if (truckGroup) {
+                // Giriş: 0.1 ile 0.6 arasında aktif
+                if (scrollPercent > 0.1 && scrollPercent < 0.6) {
+                    // Pozisyon interpolasyonu
+                    const progress = (scrollPercent - 0.1) / 0.5; // 0 ile 1 arası
+
+                    // Soldan sağa sürüş
+                    truckGroup.position.x = -10 + (progress * 15);
+                    truckGroup.position.z = -5 + Math.sin(progress * Math.PI) * 2; // Hafif kavis
+                    truckGroup.rotation.y = Math.PI / 2 - (progress * 0.2); // Hafif dönüş
+                } else if (scrollPercent <= 0.1) {
+                    truckGroup.position.x = -15; // Ekran dışı sol
+                } else {
+                    truckGroup.position.x = 15; // Ekran dışı sağ
+                }
+
+                // Tekerlek dönüşü
+                truckGroup.children.forEach(child => {
+                    if (child.geometry.type === 'CylinderGeometry') {
+                        child.rotation.z -= 0.1;
+                    }
+                });
+            }
+
+            // 3. Uçak Hareketi (Bölüm 3'te belirir)
+            if (planeGroup) {
+                if (scrollPercent > 0.5) {
+                    const progress = (scrollPercent - 0.5) / 0.5;
+
+                    // Aşağıdan yukarıya kalkış
+                    planeGroup.position.x = 5 - (progress * 5);
+                    planeGroup.position.y = -5 + (progress * 8);
+                    planeGroup.position.z = -10 + (progress * 5);
+
+                    // Burun yukarı ve bank (dönüş)
+                    planeGroup.rotation.z = -Math.PI / 4 * progress;
+                    planeGroup.rotation.y = -Math.PI / 2 - (progress * 0.5);
+                } else {
+                    planeGroup.position.y = -15;
+                }
+            }
+
+            // 4. Parçacık Akışı (Tünel efekti)
+            if (particles) {
+                particles.rotation.z += 0.001;
+                particles.position.z = (scrollPercent * 20) % 50;
+            }
+
+            // 5. Kamera Paralaks (Mouse/Gyro Etkisi)
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Başlat
+        init();
+
+    </script>
+</body>
+
+</html>
