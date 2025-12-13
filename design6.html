@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EcoLogistics - Doğayla Uyumlu Taşıma</title>
+    <meta name="description" content="Sürdürülebilir, güvenli ve doğal lojistik çözümleri.">
+
+    <!-- Three.js ve GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #27ae60;
+            /* Yaprak Yeşili */
+            --secondary: #2c3e50;
+            /* Koyu Slate */
+            --water: #2980b9;
+            --sky: #87CEEB;
+            --sand: #f1c40f;
+            --text: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background-color: var(--sky);
+            color: var(--text);
+            overflow-x: hidden;
+            overscroll-behavior-y: none;
+        }
+
+        /* 3D Canvas Arka Planı */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Gökyüzü Gradienti */
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%);
+        }
+
+        /* Yükleme Ekranı */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #E0F7FA;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .leaf-loader {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 0 50px 0 50px;
+            animation: spin-leaf 1.5s infinite ease-in-out;
+        }
+
+        @keyframes spin-leaf {
+            0% {
+                transform: rotate(0deg) scale(0.8);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(0.8);
+            }
+        }
+
+        /* İçerik Düzeni */
+        main {
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            pointer-events: none;
+            /* Mouse olayları canvas'a geçsin */
+        }
+
+        .content-card {
+            pointer-events: auto;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(30px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        section.active .content-card {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Yerleşimler */
+        .left {
+            align-items: flex-start;
+        }
+
+        .right {
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .center {
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+
+        .highlight {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        button.btn-nature {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        button.btn-nature:hover {
+            transform: translateY(-2px);
+            background: #219150;
+        }
+
+        /* Scroll İkonu */
+        .mouse-icon {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 50px;
+            border: 2px solid #2c3e50;
+            border-radius: 15px;
+            opacity: 0.6;
+        }
+
+        .wheel {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background: #2c3e50;
+            border-radius: 2px;
+            animation: scroll-wheel 1.5s infinite;
+        }
+
+        @keyframes scroll-wheel {
+            0% {
+                top: 10px;
+                opacity: 1;
+            }
+
+            100% {
+                top: 30px;
+                opacity: 0;
+            }
+        }
+
+        .hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--primary);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .content-card {
+                padding: 1.5rem;
+                width: 100%;
+                max-width: none;
+                background: rgba(255, 255, 255, 0.9);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <div class="leaf-loader"></div>
+    </div>
+    <div id="canvas-container"></div>
+    <div class="hint" id="interaction-hint">Mavnayı sürmek için dokun ve sürükle!</div>
+
+    <main>
+        <!-- Bölüm 1: Giriş -->
+        <section class="left active">
+            <div class="content-card">
+                <h1>Doğal Akışta<br><span class="highlight">Güvenli Taşıma</span></h1>
+                <p>Karmaşık ağlardan uzak, doğayla uyumlu lojistik. Yükünüz, en verimli rotalarda, karbon ayak izini en
+                    aza indirerek hedefine ulaşır.</p>
+                <button class="btn-nature">Rotayı Keşfet</button>
+            </div>
+            <div class="mouse-icon">
+                <div class="wheel"></div>
+            </div>
+        </section>
+
+        <!-- Bölüm 2: Yolculuk -->
+        <section class="right">
+            <div class="content-card">
+                <h2>Engelleri Aşıyoruz</h2>
+                <p>Nehirler, dağlar veya okyanuslar... SmartFreight teknolojimiz, coğrafi zorlukları fırsata çevirerek
+                    kesintisiz bir tedarik zinciri sunar.</p>
+                <button class="btn-nature">Filomuz</button>
+            </div>
+        </section>
+
+        <!-- Bölüm 3: Varış -->
+        <section class="center">
+            <div class="content-card">
+                <h2>Tam Zamanında</h2>
+                <p>Doğanın ritmine saygı duyarken, işinizin hızından ödün vermiyoruz. %99.8 zamanında teslimat oranıyla
+                    güven taşıyoruz.</p>
+                <button class="btn-nature">Fiyat Alın</button>
+            </div>
+        </section>
+
+        <!-- Bölüm 4: Liman (Yeni) -->
+        <section class="right">
+            <div class="content-card">
+                <h2>Hedefe Ulaştınız</h2>
+                <p>Gelişmiş liman tesislerimiz ve entegre depolama çözümlerimizle, yükünüzü yolculuğun her adımında
+                    güvende tutuyoruz.</p>
+                <button class="btn-nature" style="background: #e67e22;">İletişime Geçin</button>
+            </div>
+        </section>
+
+        <section style="height: 30vh; justify-content: flex-end; align-items: center;">
+            <p style="opacity: 0.6; font-size: 0.9rem;">© 2025 EcoLogistics. Yeşil Gelecek İçin.</p>
+        </section>
+    </main>
+
+    <script>
+        // --- DEĞİŞKENLER ---
+        const container = document.getElementById('canvas-container');
+        const loader = document.getElementById('loader');
+        const hint = document.getElementById('interaction-hint');
+
+        let scene, camera, renderer;
+        let boatGroup, cargoBox, shipyardGroup; // shipyardGroup eklendi
+        let river, landscapeLeft, landscapeRight;
+        let trees = [];
+        let scrollPercent = 0;
+        let targetScrollPercent = 0;
+        let time = 0;
+
+        // Raycaster
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Kullanıcı Girdisi (Steering)
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // Renkler (Nature Palette)
+        const colors = {
+            water: 0x3498db, // Berrak Nehir
+            waterFoam: 0xffffff,
+            wood: 0x8e44ad, // Koyu Ahşap yerine stilistik mor/kahve karışımı veya direkt kahve
+            woodReal: 0x8B4513, // Eyer Kahvesi
+            leafDark: 0x27ae60,
+            leafLight: 0x2ecc71,
+            cargo: 0xe67e22, // Turuncu Kutu
+            sky: 0x87CEEB
+        };
+
+        function init() {
+            // Sahne
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(colors.sky);
+            // Sis (Fog) ile uzak mesafeleri yumuşat
+            scene.fog = new THREE.Fog(colors.sky, 10, 45);
+
+            // Kamera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 5, 12);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            // Gölgeleri açalım (basit gölgeler)
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Işıklandırma
+            const ambientLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.6); // Gökyüzü/Yer ışığı
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            // Nesneleri Oluştur
+            createRiver();
+            createLandscape(); // Kıyılar
+            createTrees();     // Ağaçlar
+            createBoat();      // Mavna ve Kutu
+            createShipyard();  // Tersane Oluştur
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('scroll', onScroll);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('touchmove', onTouchMove, { passive: false }); // Dokunmatik kontrol
+            window.addEventListener('pointerdown', onPointerDown);
+
+            // Başlat
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+                hint.style.opacity = '1';
+                setTimeout(() => hint.style.opacity = '0', 4000);
+            }, 1000);
+
+            animate();
+        }
+
+        // --- MODEL OLUŞTURMA ---
+
+        function createRiver() {
+            // Nehir
+            const geometry = new THREE.PlaneGeometry(20, 100);
+            const material = new THREE.MeshPhongMaterial({
+                color: colors.water,
+                shininess: 80,
+                flatShading: true
+            });
+            river = new THREE.Mesh(geometry, material);
+            river.rotation.x = -Math.PI / 2;
+            river.position.y = -0.5;
+            river.receiveShadow = true;
+            scene.add(river);
+        }
+
+        function createLandscape() {
+            // Kıyılar (Basit yeşil düzlemler)
+            const geometry = new THREE.BoxGeometry(10, 2, 100);
+            const material = new THREE.MeshLambertMaterial({ color: 0x5DA666 }); // Çimen Yeşili
+
+            landscapeLeft = new THREE.Mesh(geometry, material);
+            landscapeLeft.position.set(-12, -0.5, 0);
+            landscapeLeft.receiveShadow = true;
+            scene.add(landscapeLeft);
+
+            landscapeRight = new THREE.Mesh(geometry, material);
+            landscapeRight.position.set(12, -0.5, 0);
+            landscapeRight.receiveShadow = true;
+            scene.add(landscapeRight);
+        }
+
+        function createTrees() {
+            // Ağaçları tekrar kullanmak için bir grup oluşturuyoruz
+            // 40 Ağaç
+            const treeCount = 40;
+
+            for (let i = 0; i < treeCount; i++) {
+                const group = new THREE.Group();
+
+                // Gövde
+                const trunkGeo = new THREE.CylinderGeometry(0.2, 0.4, 1.5, 6);
+                const trunkMat = new THREE.MeshLambertMaterial({ color: colors.woodReal });
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.y = 0.75;
+                trunk.castShadow = true;
+                group.add(trunk);
+
+                // Yapraklar (Koni)
+                const leavesGeo = new THREE.ConeGeometry(1.5, 3, 6);
+                const leavesMat = new THREE.MeshLambertMaterial({ color: Math.random() > 0.5 ? colors.leafDark : colors.leafLight });
+                const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                leaves.position.y = 2.5;
+                leaves.castShadow = true;
+                group.add(leaves);
+
+                // Rastgele Pozisyon
+                const side = Math.random() > 0.5 ? 1 : -1;
+                const xPos = (side * 8) + (Math.random() * 6 * side); // Nehrin iki yanı
+                const zPos = (Math.random() * 100) - 50; // Derinlik boyunca yay
+
+                group.position.set(xPos, 0, zPos);
+
+                // Rastgele Ölçek
+                const scale = 0.8 + Math.random() * 0.5;
+                group.scale.set(scale, scale, scale);
+
+                scene.add(group);
+                trees.push(group);
+            }
+        }
+
+        function createBoat() {
+            boatGroup = new THREE.Group();
+
+            // Gövde (Mavna)
+            const hullGeo = new THREE.BoxGeometry(3.5, 0.8, 6);
+            const hullMat = new THREE.MeshLambertMaterial({ color: colors.woodReal });
+            const hull = new THREE.Mesh(hullGeo, hullMat);
+            hull.castShadow = true;
+            hull.receiveShadow = true;
+            boatGroup.add(hull);
+
+            // Güverte detayı (iç kısım)
+            const deckGeo = new THREE.BoxGeometry(2.8, 0.5, 5);
+            const deckMat = new THREE.MeshLambertMaterial({ color: 0x5c3a21 });
+            const deck = new THREE.Mesh(deckGeo, deckMat);
+            deck.position.y = 0.3;
+            deck.receiveShadow = true;
+            boatGroup.add(deck);
+
+            // KARGO KUTUSU
+            const boxGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            // Kutunun üzerine basit bir logo/çizgi texture yerine geometri
+            const boxMat = new THREE.MeshStandardMaterial({ color: colors.cargo, roughness: 0.8 });
+            cargoBox = new THREE.Mesh(boxGeo, boxMat);
+            cargoBox.position.set(0, 1.3, 0); // Güvertenin üstünde
+            cargoBox.castShadow = true;
+            cargoBox.receiveShadow = true;
+
+            // Kutu bantları (Detay)
+            const tapeGeo = new THREE.BoxGeometry(1.55, 0.1, 1.55);
+            const tapeMat = new THREE.MeshBasicMaterial({ color: 0xd35400 });
+            const tape = new THREE.Mesh(tapeGeo, tapeMat);
+            cargoBox.add(tape);
+
+            boatGroup.add(cargoBox);
+
+            boatGroup.userData = { type: 'boat' };
+            scene.add(boatGroup);
+        }
+
+        function createShipyard() {
+            shipyardGroup = new THREE.Group();
+
+            // Rıhtım (Beton Zemin) - Sağ tarafta
+            const dockGeo = new THREE.BoxGeometry(12, 3, 40);
+            const dockMat = new THREE.MeshLambertMaterial({ color: 0x7f8c8d }); // Gri Beton
+            const dock = new THREE.Mesh(dockGeo, dockMat);
+            // X=14 -> Nehir X=10'da bitiyor, rıhtım 8'den başlıyor (biraz içeri giriyor)
+            dock.position.set(14, 0.5, 0);
+            dock.receiveShadow = true;
+            shipyardGroup.add(dock);
+
+            // Rıhtım Babaları (Bollards)
+            for (let i = 0; i < 5; i++) {
+                const bollard = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.2, 0.2, 0.8),
+                    new THREE.MeshLambertMaterial({ color: 0x2c3e50 })
+                );
+                bollard.position.set(9, 2.4, -15 + (i * 7));
+                shipyardGroup.add(bollard);
+            }
+
+            // Vinç (Basit Geometri)
+            const craneGroup = new THREE.Group();
+            const craneMat = new THREE.MeshLambertMaterial({ color: 0xf1c40f }); // Sarı
+
+            // Bacaklar
+            const leg1 = new THREE.Mesh(new THREE.BoxGeometry(1, 12, 1), craneMat);
+            leg1.position.set(14, 6, 0);
+            craneGroup.add(leg1);
+
+            // Üst Kol
+            const arm = new THREE.Mesh(new THREE.BoxGeometry(16, 1, 1), craneMat);
+            arm.position.set(8, 12, 0); // Nehrin üzerine uzanıyor
+            craneGroup.add(arm);
+
+            // Halat ve Kanca
+            const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 6), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+            cable.position.set(4, 9, 0);
+            craneGroup.add(cable);
+
+            shipyardGroup.add(craneGroup);
+
+            // İstiflenmiş Konteynerler
+            const contGeo = new THREE.BoxGeometry(2.2, 2.2, 4.5);
+            const cColors = [0xe74c3c, 0x2980b9, 0xf39c12]; // Kırmızı, Mavi, Sarı
+
+            for (let i = 0; i < 8; i++) {
+                const cMat = new THREE.MeshLambertMaterial({ color: cColors[Math.floor(Math.random() * 3)] });
+                const cont = new THREE.Mesh(contGeo, cMat);
+                // Rastgele üst üste koyma mantığı (Basit)
+                const xOff = 12 + (Math.random() * 4);
+                const zOff = (Math.random() * 30) - 15;
+                const yOff = 2.5 + (Math.random() > 0.6 ? 2.2 : 0); // Bazıları 2. katta
+
+                cont.position.set(xOff, yOff, zOff);
+                cont.rotation.y = (Math.random() - 0.5) * 0.1; // Hafif yamuk
+                cont.castShadow = true;
+                shipyardGroup.add(cont);
+            }
+
+            // Başlangıçta çok uzakta
+            shipyardGroup.position.z = -200;
+            scene.add(shipyardGroup);
+        }
+
+        // --- ANİMASYON MANTIĞI ---
+
+        function onScroll() {
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            targetScrollPercent = window.scrollY / docHeight;
+
+            const sections = document.querySelectorAll('section');
+            sections.forEach(sec => {
+                const rect = sec.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.65) {
+                    sec.classList.add('active');
+                }
+            });
+        }
+
+        // Mouse Takibi
+        function onMouseMove(e) {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        // Dokunmatik Takip (Touch)
+        function onTouchMove(e) {
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(touch.clientY / window.innerHeight) * 2 + 1;
+            }
+        }
+
+        function onPointerDown(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            // Tekneye tıklanırsa
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            if (intersects.length > 0) {
+                // En üst ebeveyni bul
+                let obj = intersects[0].object;
+                while (obj.parent && obj.parent !== scene) obj = obj.parent;
+
+                if (obj === boatGroup) {
+                    // Kutu zıplama efekti
+                    gsap.to(cargoBox.position, { y: 2.5, duration: 0.3, yoyo: true, repeat: 1, ease: "power1.out" });
+                    gsap.to(cargoBox.rotation, { y: cargoBox.rotation.y + Math.PI, duration: 0.6 });
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            // Scroll Yumuşatma
+            scrollPercent += (targetScrollPercent - scrollPercent) * 0.05;
+
+            // 1. NEHİR VE AĞAÇ AKIŞI
+            // Limana yaklaşıldığında (Scroll > 0.9) akışı yavaşlatıp durdur
+            let speedFactor = 1;
+            if (scrollPercent > 0.9) {
+                speedFactor = Math.max(0, (1 - scrollPercent) * 10); // 0.9'da 1, 1.0'da 0 olur
+            }
+
+            const flowSpeed = (0.1 + (scrollPercent * 0.5)) * speedFactor;
+
+            trees.forEach(tree => {
+                tree.position.z += flowSpeed;
+
+                // Ağaç sıfırlama mantığı
+                if (tree.position.z > 15) {
+                    tree.position.z = -50;
+
+                    // Tersaneye yaklaşıyorsak (Scroll > 0.8) sağ tarafta ağaç çıkarma
+                    // 1 = Sağ, -1 = Sol
+                    let side = Math.random() > 0.5 ? 1 : -1;
+
+                    if (scrollPercent > 0.75 && side === 1) {
+                        side = -1; // Zorla sola al
+                    }
+
+                    tree.position.x = (side * 8) + (Math.random() * 6 * side);
+                }
+            });
+
+            // TERSANE HAREKETİ (SCROLL İLE GELİR)
+            if (shipyardGroup) {
+                // Scroll 1.0 olduğunda Z = -5 (Tam karşımızda/yanımızda)
+                // Scroll 0.0 olduğunda Z = -200 (Siste kayıp)
+                const targetShipyardZ = -200 + (scrollPercent * 195); // -200 -> -5
+                shipyardGroup.position.z = targetShipyardZ;
+            }
+
+            // 2. TEKNE HAREKETİ VE SÜRÜŞ (STEERING)
+            if (boatGroup) {
+                // --- KULLANICI KONTROLÜ ---
+                // mouseX (-1 sol, +1 sağ)
+                const targetRotY = -mouseX * 0.5; // Dönüş açısı (Radyan)
+                const targetX = mouseX * 5;       // Yatay konum (Nehir sınırları: +/- 5)
+                const targetBank = -mouseX * 0.1; // Yatma açısı (Azaltıldı: 0.2 -> 0.1)
+
+                // Yumuşak geçiş (Lerp)
+                boatGroup.rotation.y += (targetRotY - boatGroup.rotation.y) * 0.05;
+                boatGroup.position.x += (targetX - boatGroup.position.x) * 0.05;
+
+                // Yatma (Banking) + Su sallantısı (Wobble azaltıldı)
+                boatGroup.rotation.z += (targetBank - boatGroup.rotation.z) * 0.05;
+                boatGroup.rotation.z += Math.sin(time * 1.0) * 0.005; // Sallantı frekansı ve genliği ciddi oranda düşürüldü
+
+                // Yüzme ve Pitching (Daha sakin)
+                boatGroup.position.y = Math.sin(time * 1.5) * 0.05; // Yükseklik değişimi azaltıldı
+                boatGroup.rotation.x = Math.sin(time * 0.8) * 0.005; // Öne arkaya sallantı azaltıldı
+            }
+
+            // 3. KAMERA HAREKETİ
+            // Kamera tekneyi hafifçe takip etsin (Daha dinamik hissettirir)
+            if (boatGroup) {
+                const camTargetX = boatGroup.position.x * 0.5;
+                camera.position.x += (camTargetX - camera.position.x) * 0.05;
+            }
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
